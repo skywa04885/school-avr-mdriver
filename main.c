@@ -31,9 +31,19 @@ void __attribute__ ((noreturn)) main(void) {
     LOGD("Main", "Stepper initialized");
 
     joystick_init(&joystick);
+		LOGD("Main", "Joystick initialized");
+
+		stepper_enable(&stepper);
+		stepper_move_to(&stepper, 10000, 700, 2500);
+		_delay_ms(120);
+		stepper_move_to(&stepper, 0, 700, 2500);
+		_delay_ms(120);
+		stepper_disable(&stepper);
+
 
     bool enabled = true;
     for (;;) {
+				/*
         joystick_return_t ret = joystick_read(&joystick);
         printf("Joystick > { X: %-5d, Y: %-5d, SW: %s }\n", ret.x, ret.y, (ret.clicked == true ? "On" : "Off"));
 
@@ -48,5 +58,6 @@ void __attribute__ ((noreturn)) main(void) {
 
             _delay_ms(1000);
         }
+				*/
     }
 }
