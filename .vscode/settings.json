@@ -1,6 +1,0 @@
-{
-    "AVR.source.compiler": "/bin/avr-gcc",
-    "AVR.programmer.tool": "/bin/avrdude",
-    "AVR.device.type": "atmega328p",
-    "AVR.source.libraries": []
-}
