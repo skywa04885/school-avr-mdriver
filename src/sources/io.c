@@ -27,3 +27,7 @@ void io_high(volatile uint8_t *port, uint8_t pin) {
 void io_low(volatile uint8_t *port, uint8_t pin) {
     *port &= ~(1 << pin);
 }
+
+void io_toggle(volatile uint8_t *port, uint8_t pin) {
+    *port ^= (1 << pin);
+}

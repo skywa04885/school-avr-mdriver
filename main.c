@@ -28,36 +28,21 @@ void __attribute__ ((noreturn)) main(void) {
     io_mode(&DDRB, 0, IO_OUTPUT);
 
     stepper_init(&stepper);
+    stepper_enable_auto(&stepper, 550, 1850);
+
     LOGD("Main", "Stepper initialized");
 
     joystick_init(&joystick);
 		LOGD("Main", "Joystick initialized");
-
-		stepper_enable(&stepper);
-		stepper_move_to(&stepper, 10000, 700, 2500);
-		_delay_ms(120);
-		stepper_move_to(&stepper, 0, 700, 2500);
-		_delay_ms(120);
-		stepper_disable(&stepper);
-
-
+    
     bool enabled = true;
+
+    uint32_t prev_target_pos = 512;
+    stepper_auto_set_target(&stepper, 820);
+    _delay_ms(12);
+    stepper_auto_set_target(&stepper, 0);
     for (;;) {
-				/*
-        joystick_return_t ret = joystick_read(&joystick);
-        printf("Joystick > { X: %-5d, Y: %-5d, SW: %s }\n", ret.x, ret.y, (ret.clicked == true ? "On" : "Off"));
-
-        if (ret.clicked) {
-            if (enabled) {
-                enabled = false;
-                stepper_disable(&stepper);
-            } else {
-                enabled = true;
-                stepper_enable(&stepper);
-            }
-
-            _delay_ms(1000);
-        }
-				*/
+      joystick_return_t ret = joystick_read(&joystick);
+      _delay_ms(20);
     }
 }

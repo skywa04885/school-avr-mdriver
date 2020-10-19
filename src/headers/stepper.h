@@ -19,6 +19,9 @@ void stepper_init(stepper_t *stepper);
 void stepper_enable(stepper_t *stepper);
 void stepper_disable(stepper_t *stepper);
 void stepper_set_dir(stepper_t *stepper, stepper_dir_t dir);
-uint32_t stepper_move_to(stepper_t *stepper, uint32_t target, uint32_t min_sps, uint32_t max_sps);
+uint32_t stepper_move_to(stepper_t *stepper, uint32_t target, 
+		uint32_t min_sps, uint32_t max_sps);
+void stepper_enable_auto(stepper_t *stepper, uint32_t min_sps, uint32_t max_sps);
+void stepper_auto_set_target(stepper_t *stepper, uint32_t target);
 
 #endif
