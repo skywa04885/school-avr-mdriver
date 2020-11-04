@@ -2,7 +2,7 @@
 #define _SRC_HEADERS_INCLUDE_H
 
 #ifndef BAUD
-#define BAUD 115200
+#define BAUD 9600
 #endif
 
 #ifndef F_CPU
