@@ -24,20 +24,37 @@ void __attribute__ ((noreturn)) main(void) {
     stepper.dir_pin = 7;
     stepper.enable_pin = 6;
     stepper.step_pin = 5;
+    stepper.endstop_ddr = &PORTD;
+    stepper.endstop_mask = PD3;
+    stepper.endstop_pin = &PIND;
     stepper_init(&stepper);
-    stepper_enable_auto(&stepper, 550, 6050);
 
     stepper1.ddr = &DDRB;
     stepper1.port = &PORTB;
     stepper1.step_pin = 0;
     stepper1.enable_pin = 1;
     stepper1.dir_pin = 2;
+    stepper1.endstop_ddr = &PORTD;
+    stepper1.endstop_mask = PD2;
+    stepper1.endstop_pin = &PIND;
     stepper_init(&stepper1);
-    stepper_enable_auto(&stepper1, 550, 1050);
+
+    stepper_auto_home(&stepper1);
+    stepper_auto_home(&stepper);
+
+    stepper_enable_auto(&stepper1, 550, 6500);
+    stepper_enable_auto(&stepper, 550, 6500);
 
     joystick_return_t prev;
     for (;;) {
         joystick_return_t m = joystick_read(&joystick);
+
+        if (m.clicked) {
+            stepper_auto_set_target(&stepper, 8000);
+            stepper_auto_set_target(&stepper1, 8000);
+            _delay_ms(100);
+            continue;
+        }
         
         uint16_t x_diff, y_diff;
         if (prev.x > m.x) x_diff = prev.x - m.x;
@@ -50,6 +67,6 @@ void __attribute__ ((noreturn)) main(void) {
         if (y_diff > 10) stepper_auto_set_target(&stepper1, m.y);
 
         prev = m;
-        _delay_ms(100);
+        _delay_ms(10);
     }
 }

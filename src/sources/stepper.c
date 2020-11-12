@@ -87,6 +87,8 @@ void stepper_init(stepper_t *stepper) {
 	io_mode(stepper->ddr, stepper->enable_pin, IO_OUTPUT);
 	io_mode(stepper->ddr, stepper->step_pin, IO_OUTPUT);
 
+	io_mode(stepper->endstop_ddr, stepper->endstop_mask, IO_INPUT);
+
 	io_high(stepper->port, stepper->step_pin);
 	stepper_disable(stepper);
 }
@@ -129,13 +131,15 @@ uint32_t stepper_move_to(stepper_t *stepper, uint32_t target, uint32_t min_sps, 
 	for (uint32_t i = 0; i < steps; ++i) {
 		// Calculates the delay of the current step in microseconds
 		//  after which we divide it by two
-		uint32_t delay = (1000000 / steps_per_second) / 2;
+		uint32_t delay = (1000000 / steps_per_second);
 
 		// Performs an single step
 		io_low(stepper->port, stepper->step_pin);
-		 _delay_us_runtime(delay);
+		 _delay_us(1);
 	 	io_high(stepper->port, stepper->step_pin);
-		 _delay_us_runtime(delay);
+		 
+		// Waits for next pulse
+		_delay_us_runtime(delay);
 
 		if (steps_per_second <= max_sps && i < half_of_steps) steps_per_second += 2;
 		else if (steps_per_second > min_sps && i > half_of_steps && i >= down_at) steps_per_second -= 2;
@@ -143,4 +147,20 @@ uint32_t stepper_move_to(stepper_t *stepper, uint32_t target, uint32_t min_sps, 
 
 	stepper->pos = target;
 	return steps;
+}
+
+void stepper_auto_home(stepper_t *stepper)
+{
+	// Loops until we've hit the endstop
+	stepper_enable(stepper);
+	while (io_read(stepper->endstop_pin, stepper->endstop_mask)) {
+		io_low(stepper->port, stepper->step_pin);
+		_delay_us(1);
+	 	io_high(stepper->port, stepper->step_pin);
+
+		_delay_us(2400);
+	}
+	stepper_disable(stepper);
+
+	stepper->pos = 0;
 }

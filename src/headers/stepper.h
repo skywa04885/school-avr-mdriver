@@ -76,7 +76,7 @@ ISR(TIMER_VECT) { \
 	if (DIR == STEPPER_DIR_FORWARD) ++MOTOR->pos; \
 	else --MOTOR->pos; \
 \
-	if (STEP > 0) ++STEP; \
+	++STEP; \
 }
 
 typedef enum {
@@ -89,6 +89,9 @@ typedef struct {
     int8_t *ddr, port;
     uint32_t pos;
     int8_t using_isr;
+
+		uint8_t *endstop_pin, *endstop_ddr;
+		uint8_t endstop_mask;
 } stepper_t;
 
 void stepper_init(stepper_t *stepper);
@@ -100,5 +103,6 @@ uint32_t stepper_move_to(stepper_t *stepper, uint32_t target,
 		uint32_t min_sps, uint32_t max_sps);
 void stepper_enable_auto(stepper_t *stepper, uint32_t min_sps, uint32_t max_sps);
 void stepper_auto_set_target(stepper_t *stepper, uint32_t target);
+void stepper_auto_home(stepper_t *stepper);
 
 #endif

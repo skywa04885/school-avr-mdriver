@@ -10,6 +10,6 @@ all: prep
 	avr-gcc ${SOURCES} ${CFLAGS} -o build/out.elf -Xlinker -Map=output.map
 	avr-objcopy -O ihex build/out.elf build/out.hex
 flash: all
-	avrdude -p ${MMCU} -P ${PORT} -c arduino -D -U flash:w:build/out.hex
+	avrdude -p ${MMCU} -P ${PORT} -c usbasp -U flash:w:build/out.hex
 dev: flash
 	sudo cat $(PORT) 9600
