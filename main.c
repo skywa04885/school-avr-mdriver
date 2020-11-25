@@ -1,13 +1,75 @@
 #include "main.h"
 
-static volatile stepper_t stepper, stepper1;
-static volatile uint16_t delay = 120;
+static stepper_t stepper;
+static uint8_t buffer[240];
 
-void __attribute__ ((noreturn)) main(void) {
-    uart_init();
+void __attribute__ (( noreturn )) main(void) {
+    usart_init();
+
+    stepper.port = &PORTD;
+    stepper.ddr = &DDRD;
+    stepper.dir_pin = 5;
+    stepper.enable_pin = 4;
+    stepper.step_pin = 6;
+    stepper.endstop_ddr = &PORTD;
+    stepper.endstop_mask = PD3;
+    stepper.endstop_pin = &PIND;
+    stepper_init(&stepper);
+    stepper_enable_auto(&stepper, 550, 1200);
+
+    for(;;) {
+        command_usart_read(buffer);
+
+        command_packet_t *cmd = (command_type_t *) buffer;
+        switch (cmd->hdr.type)
+        {
+            /*******************************
+             * Handles Enable/Disable of motors
+             *******************************/
+            case COMMAND_TYPE_ENABLE:
+                switch (cmd->body.payload[0])
+                {
+                    case COMMAND_MOTOR_MR:
+                        stepper_enable(&stepper);
+                        break;
+                    case COMMAND_MOTOR_MX:
+                        break;
+                }
+                break;
+            case COMMAND_TYPE_DISABLE:
+                switch (cmd->body.payload[0])
+                {
+                    case COMMAND_MOTOR_MR:
+                        stepper_disable(&stepper);
+                        break;
+                    case COMMAND_MOTOR_MX:
+                        break;
+                }
+                break;
+            /*******************************
+             * Handles Movement of motors
+             *******************************/
+            case COMMAND_TYPE_MOVE:
+            {
+                uint32_t pos = cmd->body.payload[1];
+                switch (cmd->body.payload[0])
+                {
+                    case COMMAND_MOTOR_MR:
+
+                        for (;;)printf("%d\r\n", pos);
+                        // stepper_auto_set_target(&stepper, pos);
+                        break;
+                    case COMMAND_MOTOR_MX:
+                        break;
+                }
+                break;
+            }
+        }
+    }
+    /*
+    stepper_move_to(&stepper, 400, 800, 2000);
 
     io_analog_init();
-
     joystick_t joystick;
     joystick.sw_ddr = &DDRD;
     joystick.sw_pin = 4;
@@ -69,4 +131,5 @@ void __attribute__ ((noreturn)) main(void) {
         prev = m;
         _delay_ms(10);
     }
+    */
 }

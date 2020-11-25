@@ -88,17 +88,18 @@ void stepper_init(stepper_t *stepper) {
 	io_mode(stepper->ddr, stepper->step_pin, IO_OUTPUT);
 
 	io_mode(stepper->endstop_ddr, stepper->endstop_mask, IO_INPUT);
+	io_mode(stepper->ddr, stepper->enable_pin, IO_OUTPUT);
 
 	io_high(stepper->port, stepper->step_pin);
 	stepper_disable(stepper);
 }
 
 void stepper_enable(stepper_t *stepper) {
-	io_mode(stepper->ddr, stepper->enable_pin, IO_INPUT);
+	io_high(stepper->port, stepper->enable_pin);
 }
 
 void stepper_disable(stepper_t *stepper) {
-	io_mode(stepper->ddr, stepper->enable_pin, IO_OUTPUT);
+	io_low(stepper->port, stepper->enable_pin);
 }
 
 void stepper_set_dir(stepper_t *stepper, stepper_dir_t dir) {

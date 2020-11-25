@@ -6,7 +6,7 @@
 
 typedef struct {
     uint8_t x_pin, y_pin, sw_pin;
-    volatile uint8_t *xy_ddr, sw_ddr, sw_portin, sw_port;
+    volatile uint8_t *xy_ddr, *sw_ddr, *sw_portin, *sw_port;
 } joystick_t;
 
 typedef struct {

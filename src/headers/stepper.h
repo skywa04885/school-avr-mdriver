@@ -64,7 +64,7 @@ ISR(TIMER_VECT) { \
 	/* Sends the pulse to the driver to tell the driver that the motor must */ \
 	/*  perform an step */ \
 	io_low(MOTOR->port, MOTOR->step_pin); \
-	_delay_us(1); \
+	_delay_us(50); \
 	io_high(MOTOR->port, MOTOR->step_pin); \
 \
 	/* Checks if we should increment or decrement the sps */ \
@@ -86,11 +86,11 @@ typedef enum {
 
 typedef struct {
     uint8_t dir_pin, step_pin, enable_pin;
-    int8_t *ddr, port;
+    volatile uint8_t *ddr, *port;
     uint32_t pos;
-    int8_t using_isr;
+    uint8_t using_isr;
 
-		uint8_t *endstop_pin, *endstop_ddr;
+		volatile uint8_t *endstop_pin, *endstop_ddr;
 		uint8_t endstop_mask;
 } stepper_t;
 
