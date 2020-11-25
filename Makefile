@@ -3,7 +3,7 @@
 
 # Configuration
 MCU 		:= atmega328p					# Device type
-DEV_PTH := /dev/ttyUSB1				# Physical device location
+DEV_PTH := /dev/ttyUSB0				# Physical device location
 PROGRM	:= arduino						# AVRDUDE programmer
 BAUD		:= 9600								# USART Baud
 F_CPU		:= 16000000UL					# Processor speed ( M328: +/- 16Mhz )

@@ -1,7 +1,25 @@
 #include "main.h"
 
-static stepper_t stepper;
+#define STEPPER_MIN_SPS 400
+#define STEPPER_MAX_SPS 5000
+
+static stepper_t stepper, stepper1;
 static uint8_t buffer[240];
+
+void send_response_ok(command_packet_t *pkt)
+{
+    pkt->hdr.flags.err = 0;
+    pkt->body.size = 0;
+    command_send(pkt);
+}
+
+void send_error(command_packet_t *pkt, command_error_t err)
+{
+    pkt->hdr.flags.err = 1;
+    pkt->body.size = 1;
+    pkt->body.payload[0] = err;
+    command_send(pkt);
+}
 
 void __attribute__ (( noreturn )) main(void) {
     usart_init();
@@ -15,7 +33,19 @@ void __attribute__ (( noreturn )) main(void) {
     stepper.endstop_mask = PD3;
     stepper.endstop_pin = &PIND;
     stepper_init(&stepper);
-    stepper_enable_auto(&stepper, 550, 1200);
+
+    stepper1.ddr = &DDRB;
+    stepper1.port = &PORTB;
+    stepper1.step_pin = 0;
+    stepper1.enable_pin = 1;
+    stepper1.dir_pin = 2;
+    stepper1.endstop_ddr = &PORTD;
+    stepper1.endstop_mask = PD2;
+    stepper1.endstop_pin = &PIND;
+    stepper_init(&stepper1);
+
+    stepper_enable_auto(&stepper, STEPPER_MIN_SPS, STEPPER_MAX_SPS);
+    stepper_enable_auto(&stepper1, STEPPER_MIN_SPS, STEPPER_MAX_SPS);
 
     for(;;) {
         command_usart_read(buffer);
@@ -30,20 +60,44 @@ void __attribute__ (( noreturn )) main(void) {
                 switch (cmd->body.payload[0])
                 {
                     case COMMAND_MOTOR_MR:
-                        stepper_enable(&stepper);
+                        if (stepper.using_isr != -1) send_error(cmd, COMMAND_ERROR_ENABLE_NOT_ALLOWED);
+                        else
+                        {
+                            stepper_enable(&stepper);
+                            send_response_ok(cmd);
+                        }
                         break;
                     case COMMAND_MOTOR_MX:
+                        if (stepper1.using_isr != -1) send_error(cmd, COMMAND_ERROR_ENABLE_NOT_ALLOWED);
+                        else
+                        {
+                            stepper_enable(&stepper1);
+                            send_response_ok(cmd);
+                        }
                         break;
+                    default: send_error(cmd, COMMAND_ERROR_INVALID_COMMAND);
                 }
                 break;
             case COMMAND_TYPE_DISABLE:
                 switch (cmd->body.payload[0])
                 {
                     case COMMAND_MOTOR_MR:
-                        stepper_disable(&stepper);
+                        if (stepper.using_isr != -1) send_error(cmd, COMMAND_ERROR_DISABLE_NOT_ALLOWED);
+                        else
+                        {
+                            stepper_disable(&stepper);
+                            send_response_ok(cmd);
+                        }
                         break;
                     case COMMAND_MOTOR_MX:
+                        if (stepper1.using_isr != -1) send_error(cmd, COMMAND_ERROR_DISABLE_NOT_ALLOWED);
+                        else
+                        {
+                            stepper_disable(&stepper1);
+                            send_response_ok(cmd);
+                        }
                         break;
+                    default: send_error(cmd, COMMAND_ERROR_INVALID_COMMAND);
                 }
                 break;
             /*******************************
@@ -51,19 +105,24 @@ void __attribute__ (( noreturn )) main(void) {
              *******************************/
             case COMMAND_TYPE_MOVE:
             {
-                uint32_t pos = cmd->body.payload[1];
+                uint32_t pos = *((uint32_t *) &cmd->body.payload[1]);
+
                 switch (cmd->body.payload[0])
                 {
                     case COMMAND_MOTOR_MR:
-
-                        for (;;)printf("%d\r\n", pos);
-                        // stepper_auto_set_target(&stepper, pos);
+                        stepper_auto_set_target(&stepper, pos);
+                        send_response_ok(cmd);
                         break;
                     case COMMAND_MOTOR_MX:
+                        stepper_auto_set_target(&stepper1, pos);
+                        send_response_ok(cmd);
                         break;
+                    default: send_error(cmd, COMMAND_ERROR_INVALID_COMMAND);
                 }
                 break;
             }
+
+            default: send_error(cmd, COMMAND_ERROR_INVALID_COMMAND);
         }
     }
     /*

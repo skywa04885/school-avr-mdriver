@@ -29,3 +29,31 @@ uint8_t command_read_byte(void)
   if (t == COMMANDS_USART_FLAG) return t;
   return t | (usart_read_byte() << 4);
 }
+
+void command_write_encoded_byte(uint8_t b)
+{
+  uint8_t t = b &0x0F;
+  usart_write_byte(t);
+
+  t = (b & 0xF0) >> 4;
+  usart_write_byte(t);
+}
+
+void command_send(command_packet_t *pkt)
+{
+  uint8_t i;
+
+  // Sends the start condition
+  usart_write_byte(COMMANDS_USART_FLAG);
+
+  // Starts writing the static part of the command
+  for (i = 0; i < sizeof (command_packet_t); ++i)
+    command_write_encoded_byte(((uint8_t *) pkt)[i]);
+
+  // STarts writing the payload of the packet
+  for (i = 0; i < pkt->body.size; ++i)
+    command_write_encoded_byte(pkt->body.payload[i]);
+
+  // Sends the stop condition
+  usart_write_byte(COMMANDS_USART_FLAG);
+}

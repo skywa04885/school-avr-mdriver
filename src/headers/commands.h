@@ -15,6 +15,13 @@
  ******************************/
 
 typedef enum __attribute__ (( packed )) {
+  COMMAND_ERROR_NONE,
+  COMMAND_ERROR_ENABLE_NOT_ALLOWED,     /* Auto mode enabled, no manual enable allowed */
+  COMMAND_ERROR_DISABLE_NOT_ALLOWED,    /* Auto mode enabled, no manual disable allowed */
+  COMMAND_ERROR_INVALID_COMMAND
+} command_error_t;
+
+typedef enum __attribute__ (( packed )) {
   COMMAND_MOTOR_MX = 0,
   COMMAND_MOTOR_MR
 } command_motor_t;
@@ -27,7 +34,8 @@ typedef enum __attribute__ (( packed )) {
 } command_type_t;
 
 typedef struct __attribute__ (( packed )) {
-  unsigned reserved : 8;
+  unsigned err : 1;           /* If an error has occured */
+  unsigned reserved : 7;
 } command_packet_flags_t;
 
 typedef struct __attribute__ (( packed )) {
@@ -52,6 +60,8 @@ typedef struct __attribute__ (( packed )) {
 void command_usart_read(uint8_t *buffer);
 
 void command_send_byte(uint8_t byte);
+
 uint8_t command_read_byte(void);
+void command_send(command_packet_t *pkt);
 
 #endif
