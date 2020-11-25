@@ -1,5 +1,2 @@
 build/*
 .vscode/*
-*.o
-*.elf
-*.ihex
